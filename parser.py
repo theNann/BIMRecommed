@@ -1,6 +1,7 @@
 import os
 import sys
 import string
+import csv
 
 
 def read_data(file_path):
@@ -48,7 +49,7 @@ def generate_data():
         queries.extend(q)
         results.extend(r)
 
-
+    # write file
     # file_object = open("queries.txt", "w+")
     # for q in queries:
     #     file_object.write(str(q)+"\n")
@@ -58,8 +59,7 @@ def generate_data():
     # for r in results:
     #     file_object.write(str(r)+"\n")
     # file_object.close()
-    # print("queries: ", len(queries), type(queries))
-    # print("results: ", len(results), type(results))
+
     return queries, results
 
 
@@ -77,11 +77,33 @@ def cal_similarity(r1, r2):
 def solve_data():
     queries, results = generate_data()
     similarities = []
-    for i in range(5):
-        for j in range(i+1, 5):
+    for i in range(len(results)):
+        for j in range(i+1, len(results)):
+            # print("i : ", i, "j : ", j)
             sim = cal_similarity(results[i], results[j])
             similarities.append((i, j, sim))
 
-    print("siml : ", similarities)
+    # write csv file
+    # csv_file = open('similarities.csv', 'w', newline='')
+    # csv_writer = csv.writer(csv_file)
+    # csv_writer.writerow(['query_i', 'query_j', 'similarity'])
+    # csv_writer.writerows(similarities)
+    # csv_file.close()
+
+    # csv_file = open('queries.csv', 'w', newline='')
+    # csv_writer = csv.writer(csv_file)
+    # csv_writer.writerow(['mode', 'fov', 'near', 'far', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11',
+    #                      '12', '13', '14', '15'])
+    # csv_writer.writerows(queries)
+    # csv_file.close()
+
+    # csv_file = open('results.csv', 'w', newline='')
+    # csv_writer = csv.writer(csv_file)
+    # csv_writer.writerow(['result'])
+    # csv_writer.writerows(results)
+    # csv_file.close()
+    return queries, results, similarities
+
+
 if __name__ == "__main__":
     solve_data()
