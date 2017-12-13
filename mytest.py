@@ -7,13 +7,8 @@ res = np.array([])
 
 arr = np.array([[1,2,3],[4,5,6]])
 
-arr_list = list(arr)
-arr_list[0] = np.delete(arr_list[0], [0,1])
-arr_list[1] = np.delete(arr_list[1],[2])
-print(type(arr_list),  arr_list)
-
-arr = np.array(arr_list)
-print(type(arr), arr.shape, arr)
+arr1 = arr[:, 1:]
+print(arr1)
 # print(arr_list)
 # print(type(arr_list))
 # arr1 = np.delete(arr[1], 2)

@@ -3,20 +3,25 @@ import csv
 import numpy as np
 from sklearn.model_selection import train_test_split
 
+DATA_ID = -1
+
 
 def read_data(file_path):
+    global DATA_ID
     file_object = open(file_path)
     file_lines = file_object.readlines()
 
     queries = []
     results = []
     for i in range(0, len(file_lines), 2):
+        DATA_ID += 1
         line = file_lines[i]
         start_with = "query: "
         begin = line.find(start_with) + len(start_with)
         end = len(line) - 1
         datas = line[begin:end].strip().split(',')
         query = []
+        query.append(DATA_ID)
         for d in datas:
             query.append(float(d))
         queries.append(query)
@@ -31,6 +36,7 @@ def read_data(file_path):
         if len(data_str) > 0:
             datas = data_str.split(',')
         result = []
+        result.append(DATA_ID)
         for d in datas:
             result.append(int(d))
         results.append(result)
@@ -45,7 +51,7 @@ def generate_data(file_paths):
         q, r = read_data(file_path)
         queries.extend(q)
         results.extend(r)
-    # write file
+    #write file
     # file_object = open("queries.txt", "w+")
     # for q in queries:
     #     file_object.write(str(q)+"\n")
@@ -92,7 +98,7 @@ def cal_vector_similarity(v1, v2):
 # v1 and v2 are row vector
 # v1,v2 type is matrix
 def cal_euclidean_distance(v1, v2):
-    dist = linalg.norm(v1-v2)
+    dist = np.linalg.norm(v1-v2)
     sim = 1.0 / (1.0 + dist)
     return dist, sim
 
@@ -102,7 +108,7 @@ def get_pdu_vector(queries):
     for i in range(len(queries)):
         # T*B = view
         query = queries[i]
-        view_matrix = np.mat(np.array(query[1:17]).reshape(4, 4))
+        view_matrix = np.mat(np.array(query[2:18]).reshape(4, 4))
         b_matrix = view_matrix.copy()
         b_matrix[3, :] = 0
         b_matrix[3, 3] = 1
@@ -110,7 +116,7 @@ def get_pdu_vector(queries):
         p_vector = [-t_matrix[3, 0], -t_matrix[3, 1], -t_matrix[3, 2]]
         d_vector = [view_matrix[0, 2], view_matrix[1, 2], view_matrix[2, 2]]
         u_vector = [view_matrix[0, 1], view_matrix[1, 1], view_matrix[2, 1]]
-        queries_by_pdu.append([p_vector[0], p_vector[1], p_vector[2], d_vector[0], d_vector[1], d_vector[2],
+        queries_by_pdu.append([query[0], p_vector[0], p_vector[1], p_vector[2], d_vector[0], d_vector[1], d_vector[2],
                                u_vector[0], u_vector[1], u_vector[2]])
     return queries_by_pdu
 
@@ -125,7 +131,15 @@ def solve_data():
     file_paths = ["input/DataSet/input1.txt", "input/DataSet/input2.txt", "input/DataSet/input3.txt",
                   "input/DataSet/input4.txt", "input/DataSet/input5.txt"]
     queries_by_pdu, results = get_data(file_paths)
+
+    # csv_file = open('input/queries_by_pdu.csv', 'wb')
+    # csv_writer = csv.writer(csv_file)
+    # csv_writer.writerow(['data_id',  'p1', 'p2', 'p3', 'd1', 'd2', 'd3', 'u1', 'u2', 'u3'])
+    # csv_writer.writerows(queries_by_pdu)
+    # csv_file.close()
+
     target = np.array(results)
+    print(type(target), target.shape)
     # 3-dim ndarray
     data = np.array(queries_by_pdu)
     data_train, data_test, target_train, target_test = train_test_split(data, target, test_size=0.2, random_state=0)
@@ -133,38 +147,33 @@ def solve_data():
     print(data_train.shape, data_test.shape)
     print(target_train.shape, target_test.shape)
 
-
+    # return
     # write csv file
-    csv_file = open('input/data_train.csv', 'w', newline='')
+    csv_file = open('input/data_train.csv', 'wb')
     csv_writer = csv.writer(csv_file)
-    csv_writer.writerow(['p1', 'p2', 'p3', 'd1', 'd2', 'd3', 'u1', 'u2', 'u3'])
+    csv_writer.writerow(['data_id', 'p1', 'p2', 'p3', 'd1', 'd2', 'd3', 'u1', 'u2', 'u3'])
     csv_writer.writerows(data_train)
     csv_file.close()
 
-    csv_file = open('input/data_test.csv', 'w', newline='')
+    csv_file = open('input/data_test.csv', 'wb')
     csv_writer = csv.writer(csv_file)
-    csv_writer.writerow(['p1', 'p2', 'p3', 'd1', 'd2', 'd3', 'u1', 'u2', 'u3'])
+    csv_writer.writerow(['data_id', 'p1', 'p2', 'p3', 'd1', 'd2', 'd3', 'u1', 'u2', 'u3'])
     csv_writer.writerows(data_test)
     csv_file.close()
 
-    csv_file = open('input/data_test.csv', 'w', newline='')
-    csv_writer = csv.writer(csv_file)
-    csv_writer.writerow(['p1', 'p2', 'p3', 'd1', 'd2', 'd3', 'u1', 'u2', 'u3'])
-    csv_writer.writerows(data_test)
-    csv_file.close()
-
-    csv_file = open('input/target_train.csv', 'w', newline='')
+    csv_file = open('input/target_train.csv', 'wb')
     csv_writer = csv.writer(csv_file)
     csv_writer.writerow(['result'])
     csv_writer.writerows(target_train)
     csv_file.close()
 
-    csv_file = open('input/target_test.csv', 'w', newline='')
+    csv_file = open('input/target_test.csv', 'wb')
     csv_writer = csv.writer(csv_file)
     csv_writer.writerow(['result'])
     csv_writer.writerows(target_test)
     csv_file.close()
 
-if __name__ == "__main__":
-    solve_data()
+
+# if __name__ == "__main__":
+#     solve_data()
 
