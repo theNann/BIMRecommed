@@ -1,1 +1,4 @@
 /input/*
+/output/*
+/output_alpha/*
+/.idea/*
