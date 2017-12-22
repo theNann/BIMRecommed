@@ -2,17 +2,45 @@ import numpy as np
 from sklearn.neighbors import NearestNeighbors
 import math
 import myparser
+import csv
 
-res = np.array([])
+file_path = 'output/result_len_by_radius.txt'
+file_object = open(file_path)
+file_lines = file_object.readlines()
+result_lens = []
+for i in range(0, len(file_lines)):
+    line = file_lines[i].strip()
+    if len(line) > 0 and line[0] >= '1' and line[0] <= '9':
+        num = 0
+        for j in range(0, len(line)-1):
+            num = num*10 + (int)(line[j])
+        print(num)
+        result_lens.append(num)
+file_object.close()
 
-arr = np.array([[1,2,3],[4,5,6]])
 
-arr1 = arr[:, 1:]
-print(arr1)
-# print(arr_list)
-# print(type(arr_list))
-# arr1 = np.delete(arr[1], 2)
+result_lens_tmp = []
+for i in range(1, len(result_lens), 2):
+    result_lens_tmp.append([result_lens[i]])
 
+csv_file = open('output/result_len_by_radius.csv', 'wb')
+csv_writer = csv.writer(csv_file)
+csv_writer.writerow(['len_radius=0.3'])
+csv_writer.writerows(result_lens_tmp)
+csv_file.close()
+
+# samples = [[0., 0., 0.], [0., .5, 0.], [1., 1., .5]]
+# neigh = NearestNeighbors(radius=5.0)
+# neigh.fit(samples)
+# rng = neigh.radius_neighbors([[1., 1., 1.]])
+# print(rng)
+# print(np.asarray(rng[0][0]))
+# print(np.asarray(rng[1][0]))
+# dists =np.asarray(rng[0][0])
+# inds = np.asarray(rng[1][0])
+# print(len(dists), inds.shape)
+# print(dists[0])
+# print(inds[0])
 
 # arr1 = np.array([[4,5]])
 # print(type(arr1), arr1.shape)
