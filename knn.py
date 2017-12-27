@@ -4,27 +4,39 @@ import csv
 import math
 # machine learning
 from sklearn.neighbors import NearestNeighbors
-
 import myparser
 import prepareData
 
 
-def get_nearest_neighbors(data_train_p, data_test_p, data_train_d, data_test_d, target_train, target_test,
-                          neighbors, radiu, type):
+# def get_nearest_neighbors(data_train_p, data_test_p, data_train_d, data_test_d, target_train, target_test,
+#                           neighbors, radiu, type):
+#     if type == 'position':
+#         neigh = NearestNeighbors(n_neighbors=neighbors)
+#         neigh.fit(data_train_p[:, 1:])
+#         dists, inds = neigh.kneighbors(data_test_p[:, 1:], return_distance=True)
+#     else:
+#         neigh = NearestNeighbors(n_neighbors=neighbors, metric='cosine', algorithm='brute')
+#         neigh.fit(data_train_d[:, 1:])
+#         dists, inds = neigh.kneighbors(data_test_d[:, 1:], return_distance=True)
+#
+#         # neigh = NearestNeighbors(radius=1 - math.cos(radiu), metric='cosine', algorithm='brute')
+#         # neigh.fit(data_train)
+#         # rng = neigh.radius_neighbors(data_test)
+#         # dists = np.asarray(rng[0])
+#         # inds = np.asarray(rng[1])
+#     return dists, inds
+
+
+# data_train and data_test is np.array, and shape is(XX,3L)
+def get_nearest_neighbors(data_train, data_test, neighbors, type):
     if type == 'position':
         neigh = NearestNeighbors(n_neighbors=neighbors)
-        neigh.fit(data_train_p[:, 1:])
-        dists, inds = neigh.kneighbors(data_test_p[:, 1:], return_distance=True)
+        neigh.fit(data_train)
+        dists, inds = neigh.kneighbors(data_test, return_distance=True)
     else:
         neigh = NearestNeighbors(n_neighbors=neighbors, metric='cosine', algorithm='brute')
-        neigh.fit(data_train_d[:, 1:])
-        dists, inds = neigh.kneighbors(data_test_d[:, 1:], return_distance=True)
-
-        # neigh = NearestNeighbors(radius=1 - math.cos(radiu), metric='cosine', algorithm='brute')
-        # neigh.fit(data_train)
-        # rng = neigh.radius_neighbors(data_test)
-        # dists = np.asarray(rng[0])
-        # inds = np.asarray(rng[1])
+        neigh.fit(data_train)
+        dists, inds = neigh.kneighbors(data_test, return_distance=True)
     return dists, inds
 
 
@@ -32,8 +44,7 @@ def get_score_by_neighbors(data_train_p, data_test_p, data_train_d, data_test_d,
                            neighbors_p):
     Fov = 1.0472
     neighbors_d = 5
-    dist_p, inds_p = get_nearest_neighbors(data_train_p, data_test_p, data_train_d, data_test_d, target_train,
-                                           target_test, neighbors_p, radiu=0, type='position')
+    dist_p, inds_p = get_nearest_neighbors(data_train_p[:, 1:], data_test_p[:, 1:], neighbors_p, type='position')
 
     # dist_d, inds_d = get_nearest_neighbors(data_train_p, data_test_p, data_train_d, data_test_d, target_train,
     #                                        target_test, neighbors_d, radiu=0, type='direction')

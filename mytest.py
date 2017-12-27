@@ -4,30 +4,16 @@ import math
 import myparser
 import csv
 
-file_path = 'output/result_len_by_radius.txt'
-file_object = open(file_path)
-file_lines = file_object.readlines()
-result_lens = []
-for i in range(0, len(file_lines)):
-    line = file_lines[i].strip()
-    if len(line) > 0 and line[0] >= '1' and line[0] <= '9':
-        num = 0
-        for j in range(0, len(line)-1):
-            num = num*10 + (int)(line[j])
-        print(num)
-        result_lens.append(num)
-file_object.close()
+d_test = [0.594762, -0.0588238999999999, 0.801746999999999]
+d_train_1 = [0.973859999999999, -0.146330999999999, 0.173737]
+d_train_2 = [0.623081, -0.0628164999999999, 0.77963]
+cos_1, sim_1 = myparser.cal_vector_similarity(np.mat(d_test), np.mat(d_train_1))
+cos_2, sim_2 = myparser.cal_vector_similarity(np.mat(d_test), np.mat(d_train_2))
+
+print(cos_1, sim_1)
+print(cos_2, sim_2)
 
 
-result_lens_tmp = []
-for i in range(1, len(result_lens), 2):
-    result_lens_tmp.append([result_lens[i]])
-
-csv_file = open('output/result_len_by_radius.csv', 'wb')
-csv_writer = csv.writer(csv_file)
-csv_writer.writerow(['len_radius=0.3'])
-csv_writer.writerows(result_lens_tmp)
-csv_file.close()
 
 # samples = [[0., 0., 0.], [0., .5, 0.], [1., 1., .5]]
 # neigh = NearestNeighbors(radius=5.0)

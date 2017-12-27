@@ -1,44 +1,30 @@
-from scikits.crab.models import MatrixPreferenceDataModel
-from scikits.crab.metrics import pearson_correlation
-from scikits.crab.similarities import UserSimilarity
-from scikits.crab.recommenders.knn import UserBasedRecommender
-import prepareData
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
+import prepareData
 import csv
 import myparser
+import knn
 OBJECTS = 27025
 
 
-# data_train and data_test is np.array, and shape is(,3L)
-def get_nearset_neighbor_by_pd(data_train, data_test, neighbors, type):
-    if type == 'P':
-        neigh = NearestNeighbors(n_neighbors=neighbors)
-        neigh.fit(data_train)
-        dists, inds = neigh.kneighbors(data_test, return_distance=True)
-    else:
-        neigh = NearestNeighbors(n_neighbors=neighbors, metric='cosine', algorithm='brute')
-        neigh.fit(data_train)
-        dists, inds = neigh.kneighbors(data_test, return_distance=True)
-    return dists, inds
-
-
 # data_train_p/data_train_d is np.array(9472L,3L), data_test_p/data_test_d is np.array(1L, 3L)
-def cold_start(data_train_p, data_test_p, data_train_d, data_test_d, type):
-    if type == "P":
-        dists, inds = get_nearset_neighbor_by_pd(data_train_p, data_test_p, 1, type)
+def cold_start(data_train_p, data_test_p, data_train_d, data_test_d, type, neighbors):
+    if type == "position":
+        dists, inds = knn.get_nearest_neighbors(data_train_p, data_test_p, 1, type)
         return inds
-    elif type == 'D':
-        dists, inds = get_nearset_neighbor_by_pd(data_train_d, data_test_d, 1, type)
+    elif type == 'direction':
+        dists, inds = knn.get_nearest_neighbors(data_train_d, data_test_d, 1, type)
         return inds
     else:
-        dists_p, inds_p = get_nearset_neighbor_by_pd(data_train_p, data_test_p, 15, 'P')
+        dists_p, inds_p = knn.get_nearest_neighbors(data_train_p, data_test_p, neighbors, 'position')
         d_test = data_test_d[0]
         max_sim = 0
         max_sim_id = 0
         for index in inds_p[0]:
+            # print('neighbors:')
             d_train = data_train_d[index]
             cos, sim = myparser.cal_vector_similarity(np.mat(d_test), np.mat(d_train))
+            # print("index, sim: ", index, sim)
             if sim > max_sim:
                 max_sim = sim
                 max_sim_id = index
@@ -63,7 +49,8 @@ def get_nearest_objects(objects_info, object_test, radius):
     return dists, inds
 
 
-def user_based_recommend(target_train, target_test, data_train_p, data_test_p, data_train_d, data_test_d, bound):
+def user_based_recommend(target_train, target_test, data_train_p, data_test_p, data_train_d, data_test_d, type,
+                         neighbors, bound):
     # movies_data = {
     #     1: {1: 3.0, 2: 4.0, 3: 3.5, 4: 5.0, 5: 3.0},
     #     2: {1: 3.0, 2: 4.0, 3: 2.0, 4: 3.0, 5: 3.0, 6: 2.0},
@@ -86,16 +73,12 @@ def user_based_recommend(target_train, target_test, data_train_p, data_test_p, d
 
     scores = []
     for data_test_id in range(len(data_test_p)):
-    # for data_test_id in range(1):
-        print(bound, data_test_id)
+    # for data_test_id in range(567, 568, 1):
+        print(neighbors, data_test_id)
         # cold start
         inds = cold_start(data_train_p[:, 1:4], np.array([data_test_p[data_test_id, 1:4]]), data_train_d[:, 1:4],
-                          np.array([data_test_d[data_test_id, 1:4]]), type='PD')
-        # dits, inds = get_nearset_neighbor_by_pd(data_train_d[:, 1:4], np.array([data_test_d[data_test_id, 1:4]]), 1,
-        #                                         type='D')
-
-        # dists, inds = get_nearset_neighbor_by_pd(data_train_d[:, 1:4], np.array([data_test_d[data_test_id, 1:4]]), 1)
-        # print(dists, inds)
+                          np.array([data_test_d[data_test_id, 1:4]]), type=type, neighbors=neighbors)
+        # print("inds: ", inds)
         predict_list = target_train[inds[0][0]][1:]
         set_predict_list = set(predict_list)
         similarity = {}
@@ -104,8 +87,7 @@ def user_based_recommend(target_train, target_test, data_train_p, data_test_p, d
             if len(set_predict_list | set_target_train_i) == 0:
                 sim = 0
             else:
-                sim = len(set_predict_list & set_target_train_i)*1.0 / len(set_target_train_i)
-            # print(target_train[i][0], sim)
+                sim = len(set_predict_list & set_target_train_i)*1.0 / len(set_predict_list | set_target_train_i)
             similarity[i] = sim
         sort_similarity = sorted(similarity.items(), key=lambda item: item[1], reverse=True)
 
@@ -113,17 +95,19 @@ def user_based_recommend(target_train, target_test, data_train_p, data_test_p, d
             if sim[1] < bound:
                 break
             set_predict_list = set_predict_list | set(target_train[sim[0]][1:])
-        sim_acc = len(set_predict_list & set(target_test[data_test_id][1:]))*1.0 / len(set_predict_list)
-        sim_recall = len(set_predict_list & set(target_test[data_test_id][1:]))*1.0 / len(set(target_test[data_test_id][1:]))
-        scores.append([sim_acc, sim_recall])
+        len_true_positive = len(set_predict_list & set(target_test[data_test_id][1:]))
+        sim_acc = len_true_positive*1.0 / len(set_predict_list)
+        sim_recall = len_true_positive*1.0 / len(set(target_test[data_test_id][1:]))
+        scores.append([data_test_id, sim_acc, sim_recall, inds[0][0], len(set_predict_list), len(set(target_test[data_test_id][1:]))])
+        print(sim_acc, sim_recall)
     # csv_file = open('output/statistics_user_based_recommend.csv', 'wb')
     # csv_writer = csv.writer(csv_file)
-    # csv_writer.writerow(['sim_acc', 'sim_recall', 'predict_len', 'len'])
+    # csv_writer.writerow(['id, sim_acc', 'sim_recall', 'nearest_id', 'predict_len', 'len'])
     # csv_writer.writerows(scores)
     # csv_file.close()
-    np_score = np.array(scores)
-    mean = np.mean(np_score, axis=0)
-    return mean
+    # np_score = np.array(scores)
+    # mean = np.mean(np_score, axis=0)
+    # return mean
 
 
 def content_based_recommend(target_train, target_test, data_train_p, data_test_p, radius):
@@ -131,7 +115,7 @@ def content_based_recommend(target_train, target_test, data_train_p, data_test_p
     for data_test_id in range(len(data_test_p)):
         print(radius, data_test_id)
         # get predist_list
-        dists, inds = get_nearset_neighbor_by_pd(data_train_p[:, 1:4], np.array([data_test_p[data_test_id, 1:4]]), 1)
+        dists, inds = knn.get_nearest_neighbors(data_train_p[:, 1:4], np.array([data_test_p[data_test_id, 1:4]]), 1, type="position")
         predict_list = target_train[inds[0][0]][1:]
         set_predict_list = set(predict_list)
         print("len: ", len(set_predict_list))
@@ -155,12 +139,13 @@ def content_based_recommend(target_train, target_test, data_train_p, data_test_p
 
 
 def main():
-    target_train = prepareData.get_target_train()
-    target_test = prepareData.get_target_test()
-    data_train_p = prepareData.get_data_train_p()
-    data_test_p = prepareData.get_data_test_p()
-    data_train_d = prepareData.get_data_train_d()
-    data_test_d = prepareData.get_data_test_d()
+    # target_train = prepareData.get_target_train()
+    # target_test = prepareData.get_target_test()
+    # data_train_p = prepareData.get_data_train_p()
+    # data_test_p = prepareData.get_data_test_p()
+    # data_train_d = prepareData.get_data_train_d()
+    # data_test_d = prepareData.get_data_test_d()
+    data_train_p, data_test_p, data_train_d, data_test_d, target_train, target_test = prepareData.prepare_data()
     # radiuss = [0.3]
     # scores_recommend_by_radius = []
     # for radius in radiuss:
@@ -172,17 +157,17 @@ def main():
     # csv_writer.writerows(scores_recommend_by_radius)
     # csv_file.close()
 
-    bounds = [0.99, 0.98]
+    bounds_list = [0.99]
     scores_recommend_by_bound = []
-    for bound in bounds:
-        mean = user_based_recommend(target_train, target_test, data_train_p, data_test_p, data_train_d, data_test_d,
-                                    bound)
-        scores_recommend_by_bound.append([bound, mean[0], mean[1]])
-    csv_file = open('output/tmp.csv', 'ab')
-    csv_writer = csv.writer(csv_file)
-    csv_writer.writerow(['bound', 'sim_acc', 'sim_recall'])
-    csv_writer.writerows(scores_recommend_by_bound)
-    csv_file.close()
+    for bounds in bounds_list:
+        user_based_recommend(target_train, target_test, data_train_p, data_test_p, data_train_d, data_test_d,
+                             type="position_direction", neighbors=15, bound=bounds)
+        # scores_recommend_by_bound.append([bounds, mean[0], mean[1]])
+    # csv_file = open('output/tmp.csv', 'ab')
+    # csv_writer = csv.writer(csv_file)
+    # csv_writer.writerow(['bounds', 'sim_acc', 'sim_recall'])
+    # csv_writer.writerows(scores_recommend_by_bound)
+    # csv_file.close()
 
 
 if __name__ == '__main__':
