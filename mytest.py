@@ -4,15 +4,16 @@ import math
 import myparser
 import csv
 
-d_test = [0.594762, -0.0588238999999999, 0.801746999999999]
-d_train_1 = [0.973859999999999, -0.146330999999999, 0.173737]
-d_train_2 = [0.623081, -0.0628164999999999, 0.77963]
-cos_1, sim_1 = myparser.cal_vector_similarity(np.mat(d_test), np.mat(d_train_1))
-cos_2, sim_2 = myparser.cal_vector_similarity(np.mat(d_test), np.mat(d_train_2))
-
-print(cos_1, sim_1)
-print(cos_2, sim_2)
-
+test = []
+sub_test = [1,2,3,4]
+sub_test_1 = [5,6,7,8]
+test.append(sub_test)
+test.append(sub_test_1)
+array_test = np.array(test)
+print(array_test.shape)
+print(array_test)
+array_test = array_test[:,1:]
+print(array_test)
 
 
 # samples = [[0., 0., 0.], [0., .5, 0.], [1., 1., .5]]

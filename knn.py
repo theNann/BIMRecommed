@@ -40,40 +40,48 @@ def get_nearest_neighbors(data_train, data_test, neighbors, type):
     return dists, inds
 
 
-def get_score_by_neighbors(data_train_p, data_test_p, data_train_d, data_test_d, target_train, target_test,
-                           neighbors_p):
-    Fov = 1.0472
-    neighbors_d = 5
-    dist_p, inds_p = get_nearest_neighbors(data_train_p[:, 1:], data_test_p[:, 1:], neighbors_p, type='position')
+def extract_neighbors_by_fov(data_train_p, data_test_p, data_train_d, data_test_d, neighbors):
+    pass
 
-    # dist_d, inds_d = get_nearest_neighbors(data_train_p, data_test_p, data_train_d, data_test_d, target_train,
-    #                                        target_test, neighbors_d, radiu=0, type='direction')
+
+def extract_neighbors_by_sort_direction(data_train_p, data_test_p, data_train_d, data_test_d, neighbors):
+    pass
+
+
+def get_score_by_neighbors(data_train_p, data_test_p, data_train_d, data_test_d, target_train, target_test, neighbors):
+    Fov = 1.0472
+    dist_p, inds_p = get_nearest_neighbors(data_train_p, data_test_p, neighbors, type='position')
+
     inds = []
     dist = []
     # culling p which it's d <d, test_d> > fov
-    inds_p = list(inds_p)
-    dist_p = list(dist_p)
     for i in range(len(data_test_p)):
+        print(neighbors, i)
+    # for i in range(6):
+        sub_inds = []
+        sub_dist = []
         for j in range(len(inds_p[i])):
-            del_ind = []
             d_test = data_test_d[i]
             d_train = data_train_d[inds_p[i][j]]
-            cos, sim = myparser.cal_vector_similarity(np.mat(d_test[1:]), np.mat(d_train[1:]))
-            if cos < math.cos(Fov):
-                del_ind.append(j)
-        inds_p[i] = np.delete(inds_p[i], del_ind)
-        dist_p[i] = np.delete(dist_p[i], del_ind)
-        # inds.append(list(set(inds_p[i]) | set(inds_d[i])))
-        inds.append(inds_p[i])
-        dist.append(dist_p[i])
+            cos, sim = myparser.cal_vector_similarity(np.mat(d_test), np.mat(d_train))
+            if cos >= math.cos(Fov):
+                sub_inds.append(inds_p[i][j])
+                sub_dist.append(dist_p[i][j])
+        if len(sub_inds) == 0:
+            sub_inds.append(inds_p[i][0])
+            sub_dist.append(dist_p[i][0])
+        inds.append(sub_inds)
+        dist.append(sub_dist)
 
-    inds = np.array(inds_p)
-    dist = np.array(dist_p)
+    inds = np.array(inds)
+    dist = np.array(dist)
+    # print("inds: ", inds)
 
     predict_by_union = []
     predict_by_inter = []
     score = []
     for i in range(len(inds)):
+        print(neighbors, i)
         union = set([])
         for j in range(len(inds[i])):
             union = union | set(target_train[inds[i][j]][1:])
@@ -87,11 +95,11 @@ def get_score_by_neighbors(data_train_p, data_test_p, data_train_d, data_test_d,
         sim_by_union_recall = 0
         if len(union) != 0:
             sim_by_union_acc = len(union & set(target_test[i][1:]))*1.0/len(union)
-        if len(target_test[i][1:]) != 0:
+        if len(target_test[i]) != 0:
             sim_by_union_recall = len(union & set(target_test[i][1:]))*1.0 / len(target_test[i][1:])
         if len(intersection) != 0:
             sim_by_inter_acc = len(intersection & set(target_test[i][1:]))*1.0 / len(intersection)
-        if len(target_test[i][1:]) != 0:
+        if len(target_test[i]) != 0:
             sim_by_inter_recall = len(intersection & set(target_test[i][1:]))*1.0 / len(target_test[i][1:])
         score.append([sim_by_union_acc, sim_by_union_recall, sim_by_inter_acc, sim_by_inter_recall])
         predict_by_union.append(list(union))
@@ -104,8 +112,11 @@ def knn(data_train_p, data_test_p, data_train_d, data_test_d, target_train, targ
     score_by_neighbors = []
     for neighbors in range(3, 16, 2):
         print('neighbor: ', neighbors, 'start...')
-        predict_by_union, predict_by_inter, score, dists, inds = get_score_by_neighbors(data_train_p, data_test_p,
-                                            data_train_d, data_test_d, target_train, target_test, neighbors)
+        print(data_train_p.shape, data_train_d.shape, data_test_p.shape, data_test_d.shape, target_train.shape, target_test.shape)
+        predict_by_union, predict_by_inter, score, dists, inds = \
+            get_score_by_neighbors(data_train_p[:, 1:4], data_test_p[:, 1:4], data_train_d[:, 1:4], data_test_d[:, 1:4],
+                                   target_train, target_test, neighbors)
+
         # statistics = []
         # for i in range(len(target_test)):
         #     statistics.append([i, score[i][0], score[i][1], score[i][2], score[i][3], len(predict_by_union[i]),
@@ -125,8 +136,7 @@ def knn(data_train_p, data_test_p, data_train_d, data_test_d, target_train, targ
         mean = np.mean(np_score, axis=0)
         score_by_neighbors.append([neighbors, mean[0], mean[1], mean[2], mean[3]])
         print('neighbor: ', neighbors, 'finish...')
-
-    csv_file = open('output/score_by_neighbors_p_culP.csv', 'wb')
+    csv_file = open('output/tmp.csv', 'ab')
     csv_writer = csv.writer(csv_file)
     csv_writer.writerow(['neighbors', 'score_by_union_acc', 'score_by_union_recall',
                          'score_by_inter_acc', 'score_by_inter_recall'])
