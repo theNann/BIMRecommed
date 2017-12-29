@@ -3,19 +3,13 @@ from sklearn.neighbors import NearestNeighbors
 import math
 import myparser
 import csv
-
-test = []
-sub_test = [1,2,3,4]
-sub_test_1 = [5,6,7,8]
-test.append(sub_test)
-test.append(sub_test_1)
-array_test = np.array(test)
-print(array_test.shape)
-print(array_test)
-array_test = array_test[:,1:]
-print(array_test)
-
-
+cos = {}
+cos[0] = (0,0)
+cos[2] = (2,2)
+cos[1] = (1,1)
+cos[3] = (2,3)
+sort_cos = sorted(cos.items(), key=lambda item: (item[1][0], -item[1][1]), reverse=True)
+print(sort_cos[0][0])
 # samples = [[0., 0., 0.], [0., .5, 0.], [1., 1., .5]]
 # neigh = NearestNeighbors(radius=5.0)
 # neigh.fit(samples)
