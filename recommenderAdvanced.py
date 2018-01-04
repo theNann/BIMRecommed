@@ -5,6 +5,8 @@ import prepareData
 import csv
 import myparser
 import knn
+import recommender
+import time
 Fov = 1.0472
 
 
@@ -44,47 +46,24 @@ def cold_start_advanced(data_train_p, data_test_p, data_train_d, data_test_d, ne
 
 
 def user_based_recommend(data_train_p, data_test_p, data_train_d, data_test_d, target_train, target_test, neighbors,
-                         sub_neighbors, bound):
+                         sub_neighbors, how_many):
+    dist, inds = knn.extract_neighbors_by_sort_direction(data_train_p[:, 1:4], data_test_p[:, 1:4],
+                                                         data_train_d[:, 1:4], data_test_d[:, 1:4],
+                                                         neighbors, sub_neighbors)
     scores = []
-    for data_test_id in range(len(data_test_p)):
-    # for data_test_id in range(5, 6, 1):
-        print(sub_neighbors, data_test_id)
-        # cold start
-        inds = cold_start(data_train_p[:, 1:4], np.array([data_test_p[data_test_id, 1:4]]), neighbors=neighbors)
-        # inds = cold_start_advanced(data_train_p[:, 1:4], np.array([data_test_p[data_test_id, 1:4]]),
-        #                            data_train_d[:, 1:4], np.array([data_test_d[data_test_id, 1:4]]),
-        #                            neighbors=neighbors, sub_neighbors=sub_neighbors)
-
-        # print(inds.shape)
+    for i in range(len(data_test_p)):
+        time1 = time.clock()
         set_total_predict_list = set()
-        for i in range(len(inds[0])):
-            predict_list = target_train[inds[0][i]][1:]
-            set_predict_list = set(predict_list)
-            similarity = {}
-            for j in range(len(target_train)):
-                set_target_train_j = set(target_train[j][1:])
-                if len(set_predict_list | set_target_train_j) == 0:
-                    sim = 0
-                else:
-                    sim = len(set_predict_list & set_target_train_j) * 1.0 / len(set_predict_list | set_target_train_j)
-                similarity[j] = sim
-            sort_similarity = sorted(similarity.items(), key=lambda item: item[1], reverse=True)
-
-            for sim in sort_similarity:
-                if sim[1] < bound:
-                    break
-                set_predict_list = set_predict_list | set(target_train[sim[0]][1:])
+        for j in range(len(inds[i])):
+            index = inds[i][j]
+            predict_list = target_train[index][1:]
+            set_predict_list = recommender.top_match(target_train, predict_list, how_many=how_many)
             set_total_predict_list = set_total_predict_list | set_predict_list
-        len_true_positive = len(set_total_predict_list & set(target_test[data_test_id][1:]))
-        # print("inds, len ", inds, len_true_positive)
+        len_true_positive = len(set_total_predict_list & set(target_test[i][1:]))
         sim_acc = len_true_positive * 1.0 / len(set_total_predict_list)
-        sim_recall = len_true_positive * 1.0 / len(set(target_test[data_test_id][1:]))
+        sim_recall = len_true_positive * 1.0 / len(set(target_test[i][1:]))
         scores.append([sim_acc, sim_recall])
-    # csv_file = open('output/statistics_user_based_recommend.csv', 'wb')
-    # csv_writer = csv.writer(csv_file)
-    # csv_writer.writerow(['id, sim_acc', 'sim_recall', 'nearest_id', 'predict_len', 'len'])
-    # csv_writer.writerows(scores)
-    # csv_file.close()
+        print(i, time.clock()-time1)
     np_score = np.array(scores)
     mean = np.mean(np_score, axis=0)
     return mean
@@ -92,17 +71,19 @@ def user_based_recommend(data_train_p, data_test_p, data_train_d, data_test_d, t
 
 def main():
     data_train_p, data_test_p, data_train_d, data_test_d, target_train, target_test = prepareData.prepare_data()
-    neighbors_list = [5]
-    score_recommend_by_neighbors = []
-    for neighbors in neighbors_list:
+    neighbors = 15
+    # sub_neighbors = 3
+    how_many = 2
+    scores = []
+    neighbors_list = [4, 5]
+    for sub_neighbors in neighbors_list:
         mean = user_based_recommend(data_train_p, data_test_p, data_train_d, data_test_d, target_train, target_test,
-                                    neighbors=neighbors, sub_neighbors=neighbors, bound=0.99)
-        score_recommend_by_neighbors.append([neighbors, mean[0], mean[1]])
-
+                                    neighbors, sub_neighbors, how_many)
+        scores.append([sub_neighbors, mean[0], mean[1]])
     csv_file = open('output/tmp.csv', 'ab')
     csv_writer = csv.writer(csv_file)
     csv_writer.writerow(['sub_neighbors', 'sim_acc', 'sim_recall'])
-    csv_writer.writerows(score_recommend_by_neighbors)
+    csv_writer.writerows(scores)
     csv_file.close()
     pass
 

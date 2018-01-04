@@ -38,6 +38,34 @@ def get_nearest_objects(objects_info, object_test, radius):
     return dists, inds
 
 
+def top_match(target_train, predict_list, how_many=None, bound=None):
+    set_predict_list = set(predict_list)
+    similarity = {}
+    for i in range(len(target_train)):
+        set_target_train_i = set(target_train[i][1:])
+        if len(set_predict_list | set_target_train_i) == 0:
+            sim = 0
+        else:
+            sim = len(set_predict_list & set_target_train_i) * 1.0 / len(set_predict_list | set_target_train_i)
+        similarity[i] = sim
+    sort_similarity = sorted(similarity.items(), key=lambda item: item[1], reverse=True)
+
+    if how_many is not None:
+        count_how_many = 0
+        for sim in sort_similarity:
+            set_predict_list = set_predict_list | set(target_train[sim[0]][1:])
+            count_how_many += 1
+            if count_how_many == how_many:
+                break
+    if bound is not None:
+        for sim in sort_similarity:
+            if sim[1] < bound:
+                break
+            set_predict_list = set_predict_list | set(target_train[sim[0]][1:])
+    return set_predict_list
+    pass
+
+
 def user_based_recommend(target_train, target_test, data_train_p, data_test_p, data_train_d, data_test_d,
                          how_many=None, bound=None):
     # movies_data = {
@@ -66,29 +94,7 @@ def user_based_recommend(target_train, target_test, data_train_p, data_test_p, d
     # for data_test_id in range(567, 568, 1):
         print(how_many, data_test_id)
         predict_list = target_train[inds[data_test_id][0]][1:]
-        set_predict_list = set(predict_list)
-        similarity = {}
-        for i in range(len(target_train)):
-            set_target_train_i = set(target_train[i][1:])
-            if len(set_predict_list | set_target_train_i) == 0:
-                sim = 0
-            else:
-                sim = len(set_predict_list & set_target_train_i)*1.0 / len(set_predict_list | set_target_train_i)
-            similarity[i] = sim
-        sort_similarity = sorted(similarity.items(), key=lambda item: item[1], reverse=True)
-
-        if how_many is not None:
-            count_how_many = 0
-            for sim in sort_similarity:
-                set_predict_list = set_predict_list | set(target_train[sim[0]][1:])
-                count_how_many += 1
-                if count_how_many == how_many:
-                    break
-        if bound is not None:
-            for sim in sort_similarity:
-                if sim[1] < bound:
-                    break
-                set_predict_list = set_predict_list | set(target_train[sim[0]][1:])
+        set_predict_list = top_match(target_train, predict_list, how_many, bound)
         len_true_positive = len(set_predict_list & set(target_test[data_test_id][1:]))
         sim_acc = len_true_positive*1.0 / len(set_predict_list)
         sim_recall = len_true_positive*1.0 / len(set(target_test[data_test_id][1:]))
@@ -153,7 +159,7 @@ def main():
     # csv_file.close()
 
     scores_recommend = []
-    how_many_list = [1,3]
+    how_many_list = [1]
     for how_many in how_many_list:
         mean = user_based_recommend(target_train, target_test, data_train_p, data_test_p, data_train_d, data_test_d,
                                     how_many=how_many)
