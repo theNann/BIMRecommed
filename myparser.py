@@ -174,6 +174,26 @@ def solve_data():
     csv_file.close()
 
 
-# if __name__ == "__main__":
-#     solve_data()
+def solve_test():
+    file_paths = ["input/DataSet/test.txt"]
+    queries_by_pdu, results = get_data(file_paths)
+    target = np.array(results)
+    data = np.array(queries_by_pdu)
+    # write csv file
+    csv_file = open('input/test_input.csv', 'wb')
+    csv_writer = csv.writer(csv_file)
+    csv_writer.writerow(['data_id', 'p1', 'p2', 'p3', 'd1', 'd2', 'd3', 'u1', 'u2', 'u3'])
+    csv_writer.writerows(data)
+    csv_file.close()
 
+    csv_file = open('input/test_output.csv', 'wb')
+    csv_writer = csv.writer(csv_file)
+    csv_writer.writerow(['result'])
+    csv_writer.writerows(target)
+    csv_file.close()
+    pass
+
+
+if __name__ == "__main__":
+    # solve_data()
+    solve_test()

@@ -3,6 +3,28 @@ import numpy as np
 import csv
 
 
+def prepare_data_test():
+    test_input = pd.read_csv('input/test_input.csv')
+    test_input_p = np.array(test_input[['data_id', 'p1', 'p2', 'p3']])
+    test_input_d = np.array(test_input[['data_id', 'd1', 'd2', 'd3']])
+
+    test_output = []
+    csv_file = open('input/test_output.csv', 'r')
+    lines = csv.reader(csv_file)
+    first = True
+    for line in lines:
+        if first == True:
+            first = False
+            continue
+        tmp = []
+        for num in line:
+            tmp.append(int(num))
+        test_output.append(tmp)
+    test_output = np.array(test_output)
+    return test_input_p, test_input_d, np.array(test_input), test_output
+    pass
+
+
 def prepare_data():
     data_train = pd.read_csv('input/data_train.csv')
     data_train_p = np.array(data_train[['data_id', 'p1', 'p2', 'p3']])
