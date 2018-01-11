@@ -4,6 +4,7 @@ import prepareData
 import csv
 import myparser
 import knn
+import time
 OBJECTS = 27025
 
 
@@ -90,17 +91,19 @@ def user_based_recommend(target_train, target_test, data_train_p, data_test_p, d
     dists, inds = cold_start(data_train_p[:, 1:4], data_test_p[:, 1:4], data_train_d[:, 1:4], data_test_d[:, 1:4],
                              cold_start_strategy='position_direction')
     scores = []
+    statistics = []
     for data_test_id in range(len(data_test_p)):
-    # for data_test_id in range(567, 568, 1):
         print(how_many, data_test_id)
+        time1 = time.clock()
         predict_list = target_train[inds[data_test_id][0]][1:]
         set_predict_list = top_match(target_train, predict_list, how_many, bound)
         len_true_positive = len(set_predict_list & set(target_test[data_test_id][1:]))
         sim_acc = len_true_positive*1.0 / len(set_predict_list)
         sim_recall = len_true_positive*1.0 / len(set(target_test[data_test_id][1:]))
-        # scores.append([data_test_id, sim_acc, sim_recall, inds[data_test_id][0], len(set_predict_list), len(set(target_test[data_test_id][1:]))])
+        statistics.append([data_test_id, sim_acc, sim_recall, len(set_predict_list), len(target_test[data_test_id][1:]),
+                           len_true_positive])
         scores.append([sim_acc, sim_recall])
-        # print(sim_acc, sim_recall)
+        print(data_test_id, time.clock()-time1)
     # csv_file = open('output/statistics_user_based_recommend.csv', 'wb')
     # csv_writer = csv.writer(csv_file)
     # csv_writer.writerow(['id, sim_acc', 'sim_recall', 'nearest_id', 'predict_len', 'len'])
@@ -108,7 +111,7 @@ def user_based_recommend(target_train, target_test, data_train_p, data_test_p, d
     # csv_file.close()
     np_score = np.array(scores)
     mean = np.mean(np_score, axis=0)
-    return mean
+    return mean, statistics
 
 
 def content_based_recommend(target_train, target_test, data_train_p, data_test_p, radius):
@@ -147,6 +150,7 @@ def main():
     # data_train_d = prepareData.get_data_train_d()
     # data_test_d = prepareData.get_data_test_d()
     data_train_p, data_test_p, data_train_d, data_test_d, target_train, target_test = prepareData.prepare_data()
+    test_input_p, test_input_d, test_input, test_output = prepareData.prepare_data_test()
     # radiuss = [0.3]
     # scores_recommend_by_radius = []
     # for radius in radiuss:
@@ -158,16 +162,13 @@ def main():
     # csv_writer.writerows(scores_recommend_by_radius)
     # csv_file.close()
 
-    scores_recommend = []
-    how_many_list = [1]
-    for how_many in how_many_list:
-        mean = user_based_recommend(target_train, target_test, data_train_p, data_test_p, data_train_d, data_test_d,
-                                    how_many=how_many)
-        scores_recommend.append([how_many, mean[0], mean[1]])
-    csv_file = open('output/tmp.csv', 'ab')
+    how_many = 6
+    mean, statistics = user_based_recommend(target_train, test_output, data_train_p, test_input_p, data_train_d,
+                                            test_input_d, how_many=how_many)
+    csv_file = open('output/tmp_recommender_2.csv', 'wb')
     csv_writer = csv.writer(csv_file)
-    csv_writer.writerow(['how_many', 'sim_acc', 'sim_recall'])
-    csv_writer.writerows(scores_recommend)
+    csv_writer.writerow(['id', 'sim_acc', 'sim_recall', 'len_predict', 'len_output', 'len_true_positive'])
+    csv_writer.writerows(statistics)
     csv_file.close()
 
 

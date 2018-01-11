@@ -126,6 +126,16 @@ def get_target_test():
     return target_test
 
 
+def get_data_train():
+    data_train = pd.read_csv('input/data_train.csv')
+    return np.array(data_train)
+
+
+def get_data_test():
+    data_test = pd.read_csv('input/data_test.csv')
+    return np.array(data_test)
+
+
 def get_objects_info():
     objects_info = pd.read_csv('input/objectspositon.csv')
     return np.array(objects_info)

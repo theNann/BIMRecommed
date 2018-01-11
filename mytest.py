@@ -3,13 +3,17 @@ from sklearn.neighbors import NearestNeighbors
 import math
 import myparser
 import csv
-cos = {}
-cos[0] = (0,0)
-cos[2] = (2,2)
-cos[1] = (1,1)
-cos[3] = (2,3)
-sort_cos = sorted(cos.items(), key=lambda item: (item[1][0], -item[1][1]), reverse=True)
-print(sort_cos[0][0])
+
+from sklearn import cross_validation
+from sklearn.model_selection import KFold
+
+score = [
+    [1, 0, 2, 1, 4],
+    [2, 1, 4, 3, 5],
+    [3, 2, 3, 5, 6]
+]
+score = np.array(score)
+print(score[:, [4,5]])
 # samples = [[0., 0., 0.], [0., .5, 0.], [1., 1., .5]]
 # neigh = NearestNeighbors(radius=5.0)
 # neigh.fit(samples)

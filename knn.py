@@ -48,7 +48,7 @@ def extract_neighbors_by_fov(data_train_p, data_test_p, data_train_d, data_test_
     dist = []
     # culling p which it's d <d, test_d> > fov
     for i in range(len(data_test_p)):
-        print(neighbors, i)
+        # print(neighbors, i)
         # for i in range(6):
         sub_inds = []
         sub_dist = []
@@ -78,7 +78,7 @@ def extract_neighbors_by_sort_direction(data_train_p, data_test_p, data_train_d,
     dist = []
     # culling p which it's d <d, test_d> > fov
     for i in range(len(data_test_p)):
-        print(neighbors, i)
+        # print(neighbors, i)
         # for i in range(6):
         sub_inds = []
         sub_dist = []
@@ -115,7 +115,7 @@ def get_score_by_neighbors(inds, dist, target_train, target_test, neighbors):
     predict_by_inter = []
     score = []
     for i in range(len(inds)):
-        print(neighbors, i)
+        # print(neighbors, i)
         union = set([])
         for j in range(len(inds[i])):
             union = union | set(target_train[inds[i][j]][1:])
@@ -129,11 +129,11 @@ def get_score_by_neighbors(inds, dist, target_train, target_test, neighbors):
         sim_by_union_recall = 0
         if len(union) != 0:
             sim_by_union_acc = len(union & set(target_test[i][1:]))*1.0/len(union)
-        if len(target_test[i]) != 0:
+        if len(target_test[i][1:]) != 0:
             sim_by_union_recall = len(union & set(target_test[i][1:]))*1.0 / len(target_test[i][1:])
         if len(intersection) != 0:
             sim_by_inter_acc = len(intersection & set(target_test[i][1:]))*1.0 / len(intersection)
-        if len(target_test[i]) != 0:
+        if len(target_test[i][1:]) != 0:
             sim_by_inter_recall = len(intersection & set(target_test[i][1:]))*1.0 / len(target_test[i][1:])
         score.append([sim_by_union_acc, sim_by_union_recall, sim_by_inter_acc, sim_by_inter_recall])
         predict_by_union.append(list(union))
@@ -156,46 +156,67 @@ def knn_small(data_train_p, data_test_p, data_train_d, data_test_d, target_train
     pass
 
 
-def knn(data_train_p, data_test_p, data_train_d, data_test_d, target_train, target_test):
+def knn_8(data_train_p, data_test_p, data_train_d, data_test_d, target_train, target_test):
     score_by_neighbors = []
-    for neighbors in range(1, 7, 1):
+    for neighbors in range(6, 7, 1):
         print('neighbor: ', neighbors, 'start...')
         predict_by_union, predict_by_inter, score, dists, inds = \
             knn_small(data_train_p[:, 1:4], data_test_p[:, 1:4], data_train_d[:, 1:4], data_test_d[:, 1:4],
                       target_train, target_test, neighbors=15, sub_neighbors=neighbors)
 
-        # statistics = []
-        # for i in range(len(target_test)):
-        #     statistics.append([i, score[i][0], score[i][1], score[i][2], score[i][3], len(predict_by_union[i]),
-        #                        len(predict_by_inter[i]), len(target_test[i]), dists[i][0], dists[i][len(dists[i])-1],
-        #                        inds[i]])
-        # # write predict and score of each neighbor
-        # csv_file = open('output/statistics_'+str(neighbors)+'_pd_culP.csv', 'w', newline='')
-        # csv_writer = csv.writer(csv_file)
-        # csv_writer.writerow(['index', 'sim_by_union_acc', 'sim_by_union_recall', 'sim_by_inter_acc',
-        #                      'sim_by_inter_recall', 'len_union', 'len_inter', 'len_target', 'min_dist',
-        #                      'max_dist', 'inds'])
-        # csv_writer.writerows(statistics)
-        # csv_file.close()
+        statistics = []
+        for i in range(len(target_test)):
+            statistics.append([i, score[i][0], score[i][1], score[i][2], score[i][3], len(predict_by_union[i]),
+                               len(predict_by_inter[i]), len(target_test[i][1:])])
+        # write predict and score of each neighbor
+        csv_file = open('output/tmp_knn_8.csv', 'wb')
+        csv_writer = csv.writer(csv_file)
+        csv_writer.writerow(['index', 'sim_by_union_acc', 'sim_by_union_recall', 'sim_by_inter_acc',
+                             'sim_by_inter_recall', 'len_union', 'len_inter', 'len_target'])
+        csv_writer.writerows(statistics)
+        csv_file.close()
 
         # cal mean of each neighbor
-        np_score = np.array(score)
-        mean = np.mean(np_score, axis=0)
-        score_by_neighbors.append([neighbors, mean[0], mean[1], mean[2], mean[3]])
-        # print('neighbor: ', neighbors, 'finish...')
-        # print(mean[0], mean[1], mean[2], mean[3])
-    csv_file = open('output/tmp.csv', 'ab')
-    csv_writer = csv.writer(csv_file)
-    csv_writer.writerow(['neighbors', 'score_by_union_acc', 'score_by_union_recall',
-                         'score_by_inter_acc', 'score_by_inter_recall'])
-    csv_writer.writerows(score_by_neighbors)
-    csv_file.close()
+        # np_score = np.array(score)
+        # mean = np.mean(np_score, axis=0)
+        # score_by_neighbors.append([neighbors, mean[0], mean[1], mean[2], mean[3]])
+    # csv_file = open('output/tmp.csv', 'ab')
+    # csv_writer = csv.writer(csv_file)
+    # csv_writer.writerow(['neighbors', 'score_by_union_acc', 'score_by_union_recall',
+    #                      'score_by_inter_acc', 'score_by_inter_recall'])
+    # csv_writer.writerows(score_by_neighbors)
+    # csv_file.close()
+
+
+def knn_2(data_train_p, data_test_p, data_train_d, data_test_d, target_train, target_test, neighbors=None):
+    # for neighbors in range(6, 7, 1):
+    # print('neighbor: ', neighbors, 'start...')
+    if neighbors is None:
+        neighbors = 5
+    predict_by_union, predict_by_inter, score, dists, inds = \
+        knn_small(data_train_p[:, 1:4], data_test_p[:, 1:4], data_train_d[:, 1:4], data_test_d[:, 1:4],
+                  target_train, target_test, neighbors=neighbors)
+
+    # statistics = []
+    # for i in range(len(target_test)):
+    #     statistics.append([i, score[i][0], score[i][1], score[i][2], score[i][3], len(predict_by_union[i]),
+    #                        len(predict_by_inter[i]), len(target_test[i][1:])])
+    # # write predict and score of each neighbor
+    # csv_file = open('output/tmp_knn_2.csv', 'wb')
+    # csv_writer = csv.writer(csv_file)
+    # csv_writer.writerow(['index', 'sim_by_union_acc', 'sim_by_union_recall', 'sim_by_inter_acc',
+    #                      'sim_by_inter_recall', 'len_union', 'len_inter', 'len_target'])
+    # csv_writer.writerows(statistics)
+    # csv_file.close()
+    return score
 
 
 def main():
     data_train_p, data_test_p, data_train_d, data_test_d, target_train, target_test = prepareData.prepare_data()
+    test_input_p, test_input_d, test_input, test_output = prepareData.prepare_data_test()
     print('Prepare data finish...')
-    knn(data_train_p, data_test_p, data_train_d, data_test_d, target_train, target_test)
+    knn_8(data_train_p, test_input_p, data_train_d, test_input_d, target_train, test_output)
+    knn_2(data_train_p, test_input_p, data_train_d, test_input_d, target_train, test_output)
 
 
 if __name__ == '__main__':

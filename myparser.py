@@ -121,16 +121,18 @@ def get_pdu_vector(queries):
     return queries_by_pdu
 
 
-def get_data(file_paths):
+def read_data_txt(file_paths):
     queries, results = generate_data(file_paths)
     queries_by_pdu = get_pdu_vector(queries)
-    return queries_by_pdu, results
+    data = np.array(queries_by_pdu)
+    target = np.array(results)
+    return data, target
 
 
 def solve_data():
     file_paths = ["input/DataSet/input1.txt", "input/DataSet/input2.txt", "input/DataSet/input3.txt",
                   "input/DataSet/input4.txt", "input/DataSet/input5.txt"]
-    queries_by_pdu, results = get_data(file_paths)
+    data, target = read_data_txt(file_paths)
 
     # csv_file = open('input/queries_by_pdu.csv', 'wb')
     # csv_writer = csv.writer(csv_file)
@@ -138,10 +140,6 @@ def solve_data():
     # csv_writer.writerows(queries_by_pdu)
     # csv_file.close()
 
-    target = np.array(results)
-    print(type(target), target.shape)
-    # 3-dim ndarray
-    data = np.array(queries_by_pdu)
     data_train, data_test, target_train, target_test = train_test_split(data, target, test_size=0.2, random_state=0)
 
     print(data_train.shape, data_test.shape)
@@ -176,7 +174,7 @@ def solve_data():
 
 def solve_test():
     file_paths = ["input/DataSet/test.txt"]
-    queries_by_pdu, results = get_data(file_paths)
+    queries_by_pdu, results = read_data_txt(file_paths)
     target = np.array(results)
     data = np.array(queries_by_pdu)
     # write csv file
