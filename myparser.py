@@ -147,29 +147,43 @@ def solve_data():
 
     # return
     # write csv file
-    csv_file = open('input/data_train.csv', 'wb')
-    csv_writer = csv.writer(csv_file)
-    csv_writer.writerow(['data_id', 'p1', 'p2', 'p3', 'd1', 'd2', 'd3', 'u1', 'u2', 'u3'])
-    csv_writer.writerows(data_train)
-    csv_file.close()
 
-    csv_file = open('input/data_test.csv', 'wb')
-    csv_writer = csv.writer(csv_file)
-    csv_writer.writerow(['data_id', 'p1', 'p2', 'p3', 'd1', 'd2', 'd3', 'u1', 'u2', 'u3'])
-    csv_writer.writerows(data_test)
-    csv_file.close()
+    # csv_file = open('input/data_train.csv', 'wb')
+    # csv_writer = csv.writer(csv_file)
+    # csv_writer.writerow(['data_id', 'p1', 'p2', 'p3', 'd1', 'd2', 'd3', 'u1', 'u2', 'u3'])
+    # csv_writer.writerows(data_train)
+    # csv_file.close()
+    #
+    # index = 0
+    # for data_test_i in data_test:
+    #     data_test_i[0] = index
+    #     index = index + 1
+    # csv_file = open('input/data_test.csv', 'wb')
+    # csv_writer = csv.writer(csv_file)
+    # csv_writer.writerow(['data_id', 'p1', 'p2', 'p3', 'd1', 'd2', 'd3', 'u1', 'u2', 'u3'])
+    # csv_writer.writerows(data_test)
+    # csv_file.close()
+    #
 
-    csv_file = open('input/target_train.csv', 'wb')
-    csv_writer = csv.writer(csv_file)
-    csv_writer.writerow(['result'])
-    csv_writer.writerows(target_train)
-    csv_file.close()
+    txt_file = open('input/target_train.txt', 'wb')
+    index = 0
+    for target_train_i in target_train:
+        target_train_i[0] = index
+        tmp = str(target_train_i)
+        tmp = tmp[1:len(tmp) - 1]
+        txt_file.writelines(tmp + '\n')
+        index += 1
+    txt_file.close()
 
-    csv_file = open('input/target_test.csv', 'wb')
-    csv_writer = csv.writer(csv_file)
-    csv_writer.writerow(['result'])
-    csv_writer.writerows(target_test)
-    csv_file.close()
+    txt_file = open('input/target_test.txt', 'wb')
+    index = 0
+    for target_test_i in target_test:
+        target_test_i[0] = index
+        tmp = str(target_test_i)
+        tmp = tmp[1:len(tmp) - 1]
+        txt_file.writelines(tmp + '\n')
+        index += 1
+    txt_file.close()
 
 
 def solve_test():
@@ -193,5 +207,5 @@ def solve_test():
 
 
 if __name__ == "__main__":
-    # solve_data()
-    solve_test()
+    solve_data()
+    # solve_test()

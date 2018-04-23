@@ -35,32 +35,28 @@ def prepare_data():
     data_test_d = np.array(data_test[['data_id', 'd1', 'd2', 'd3']])
 
     target_test = []
-    csv_file = open('input/target_test.csv', 'r')
-    lines = csv.reader(csv_file)
-    first = True
+    file_obj = open('input/target_test.txt')
+    lines = file_obj.readlines()
     for line in lines:
-        if first == True:
-            first = False
-            continue
-        tmp = []
-        for num in line:
-            tmp.append(int(num))
-        target_test.append(tmp)
+        tmp = line.strip().split(", ")
+        datas = []
+        for tmp_elem in tmp:
+            datas.append(int(tmp_elem))
+        target_test.append(datas)
     target_test = np.array(target_test)
+    file_obj.close()
 
     target_train = []
-    csv_file = open('input/target_train.csv', 'r')
-    lines = csv.reader(csv_file)
-    first = True
+    file_obj = open('input/target_train.txt')
+    lines = file_obj.readlines()
     for line in lines:
-        if first == True:
-            first = False
-            continue
-        tmp = []
-        for num in line:
-            tmp.append(int(num))
-        target_train.append(tmp)
+        tmp = line.strip().split(", ")
+        datas = []
+        for tmp_elem in tmp:
+            datas.append(int(tmp_elem))
+        target_train.append(datas)
     target_train = np.array(target_train)
+    file_obj.close()
     # print(type(data_train_p), type(data_test_p), type(data_train_d), type(data_test_d),
     #  type(target_train), type(target_test))
     # print(data_train_p.shape, data_test_p.shape, data_train_d.shape, data_test_d.shape,

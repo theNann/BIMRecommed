@@ -7,13 +7,20 @@ import csv
 from sklearn import cross_validation
 from sklearn.model_selection import KFold
 
-score = [
-    [1, 0, 2, 1, 4],
-    [2, 1, 4, 3, 5],
-    [3, 2, 3, 5, 6]
-]
-score = np.array(score)
-print(score[:, [4,5]])
+target = [[1,2,3],[4,5],[6]]
+target = np.array(target)
+txt_file = open('input/target_train.txt', 'wb')
+# txt_file.writelines(str(target))
+index = 0
+for target_train_i in target:
+    target_train_i[0] = index
+    tmp = str(target_train_i)
+    tmp = tmp[1:len(tmp)-1]
+    txt_file.writelines(tmp + '\n')
+    index += 1
+# txt_file.close()
+
+
 # samples = [[0., 0., 0.], [0., .5, 0.], [1., 1., .5]]
 # neigh = NearestNeighbors(radius=5.0)
 # neigh.fit(samples)

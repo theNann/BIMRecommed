@@ -158,7 +158,7 @@ def knn_small(data_train_p, data_test_p, data_train_d, data_test_d, target_train
 
 def knn_8(data_train_p, data_test_p, data_train_d, data_test_d, target_train, target_test):
     score_by_neighbors = []
-    for neighbors in range(6, 7, 1):
+    for neighbors in range(5, 6, 1):
         print('neighbor: ', neighbors, 'start...')
         predict_by_union, predict_by_inter, score, dists, inds = \
             knn_small(data_train_p[:, 1:4], data_test_p[:, 1:4], data_train_d[:, 1:4], data_test_d[:, 1:4],
@@ -169,7 +169,7 @@ def knn_8(data_train_p, data_test_p, data_train_d, data_test_d, target_train, ta
             statistics.append([i, score[i][0], score[i][1], score[i][2], score[i][3], len(predict_by_union[i]),
                                len(predict_by_inter[i]), len(target_test[i][1:])])
         # write predict and score of each neighbor
-        csv_file = open('output/tmp_knn_8.csv', 'wb')
+        csv_file = open('output/knn_8.csv', 'wb')
         csv_writer = csv.writer(csv_file)
         csv_writer.writerow(['index', 'sim_by_union_acc', 'sim_by_union_recall', 'sim_by_inter_acc',
                              'sim_by_inter_recall', 'len_union', 'len_inter', 'len_target'])
@@ -214,9 +214,11 @@ def knn_2(data_train_p, data_test_p, data_train_d, data_test_d, target_train, ta
 def main():
     data_train_p, data_test_p, data_train_d, data_test_d, target_train, target_test = prepareData.prepare_data()
     test_input_p, test_input_d, test_input, test_output = prepareData.prepare_data_test()
+    for target_test_i in target_test:
+        print(target_test_i)
     print('Prepare data finish...')
-    knn_8(data_train_p, test_input_p, data_train_d, test_input_d, target_train, test_output)
-    knn_2(data_train_p, test_input_p, data_train_d, test_input_d, target_train, test_output)
+    # knn_8(data_train_p, data_test_p, data_train_d, data_test_d, target_train, target_test)
+    # knn_2(data_train_p, test_input_p, data_train_d, test_input_d, target_train, test_output)
 
 
 if __name__ == '__main__':
