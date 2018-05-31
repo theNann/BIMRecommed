@@ -130,9 +130,12 @@ def read_data_txt(file_paths):
 
 
 def solve_data():
-    file_paths = ["input/DataSet/input1.txt", "input/DataSet/input2.txt", "input/DataSet/input3.txt",
-                  "input/DataSet/input4.txt", "input/DataSet/input5.txt"]
+    # file_paths = ["input/DataSet/input1.txt", "input/DataSet/input2.txt", "input/DataSet/input3.txt",
+    #               "input/DataSet/input4.txt", "input/DataSet/input5.txt"]
+    file_paths = ["E:/DataSet/test1.txt"]
     data, target = read_data_txt(file_paths)
+    print(data.shape)
+    print(target.shape)
 
     # csv_file = open('input/queries_by_pdu.csv', 'wb')
     # csv_writer = csv.writer(csv_file)
@@ -140,20 +143,24 @@ def solve_data():
     # csv_writer.writerows(queries_by_pdu)
     # csv_file.close()
 
-    data_train, data_test, target_train, target_test = train_test_split(data, target, test_size=0.2, random_state=0)
+    # data_train, data_test, target_train, target_test = train_test_split(data, target, test_size=0.2, random_state=0)
+    # print(data_train.shape, data_test.shape)
+    # print(target_train.shape, target_test.shape)
 
-    print(data_train.shape, data_test.shape)
-    print(target_train.shape, target_test.shape)
-
-    # return
     # write csv file
+    csv_file = open('E:/DataSet/data1.csv', 'wb')
+    csv_writer = csv.writer(csv_file)
+    csv_writer.writerow(['data_id', 'p1', 'p2', 'p3', 'd1', 'd2', 'd3', 'u1', 'u2', 'u3'])
+    csv_writer.writerows(data)
+    csv_file.close()
 
-    # csv_file = open('input/data_train.csv', 'wb')
-    # csv_writer = csv.writer(csv_file)
-    # csv_writer.writerow(['data_id', 'p1', 'p2', 'p3', 'd1', 'd2', 'd3', 'u1', 'u2', 'u3'])
-    # csv_writer.writerows(data_train)
-    # csv_file.close()
-    #
+    txt_file = open('E:/DataSet/target1.txt', 'wb')
+    for target_train_i in target:
+        tmp = str(target_train_i)
+        tmp = tmp[1:len(tmp) - 1]
+        txt_file.writelines(tmp + '\n')
+    txt_file.close()
+
     # index = 0
     # for data_test_i in data_test:
     #     data_test_i[0] = index
@@ -165,25 +172,25 @@ def solve_data():
     # csv_file.close()
     #
 
-    txt_file = open('input/target_train.txt', 'wb')
-    index = 0
-    for target_train_i in target_train:
-        target_train_i[0] = index
-        tmp = str(target_train_i)
-        tmp = tmp[1:len(tmp) - 1]
-        txt_file.writelines(tmp + '\n')
-        index += 1
-    txt_file.close()
+    # txt_file = open('input/target_train.txt', 'wb')
+    # index = 0
+    # for target_train_i in target_train:
+    #     target_train_i[0] = index
+    #     tmp = str(target_train_i)
+    #     tmp = tmp[1:len(tmp) - 1]
+    #     txt_file.writelines(tmp + '\n')
+    #     index += 1
+    # txt_file.close()
 
-    txt_file = open('input/target_test.txt', 'wb')
-    index = 0
-    for target_test_i in target_test:
-        target_test_i[0] = index
-        tmp = str(target_test_i)
-        tmp = tmp[1:len(tmp) - 1]
-        txt_file.writelines(tmp + '\n')
-        index += 1
-    txt_file.close()
+    # txt_file = open('input/target_test.txt', 'wb')
+    # index = 0
+    # for target_test_i in target_test:
+    #     target_test_i[0] = index
+    #     tmp = str(target_test_i)
+    #     tmp = tmp[1:len(tmp) - 1]
+    #     txt_file.writelines(tmp + '\n')
+    #     index += 1
+    # txt_file.close()
 
 
 def solve_test():
